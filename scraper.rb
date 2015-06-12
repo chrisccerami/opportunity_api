@@ -33,14 +33,19 @@ SOL_SELECT_CSS_PATHS.each do |s|
   end
 end
 
-paths.each do |path|
+paths.first(10).each do |path|
   photos_page = Nokogiri::HTML(open(BASE_URI + path))
   table = photos_page.css("table")[10]
-  photos = table.css("img[border='1']")
-  photos.each do |photo|
-    src = photo.attributes["src"].value
-    parts = src.split("/")
-    sol = parts[2]
-    camera = parts[1]
+  photo_links = table.css("tr[bgcolor='#F4F4E9']").map { |p| p.css("a") }
+  photo_links.each do |links|
+    links.each do |link|
+      path = link.attributes["href"].value
+      parts = path.split("/")
+      sol = parts[2].to_i
+      camera = CAMERAS[parts[1].to_sym]
+      photo_page = Nokogiri::HTML(open(BASE_URI + path))
+      early_path = path.scan(/\d\/\w\/\d+\//).first
+      src = BASE_URI + early_path + photo_page.css("table")[10].css("img").first.attributes["src"].value
+    end
   end
 end
